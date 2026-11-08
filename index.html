@@ -16,16 +16,19 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+KR:wght@400..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400..800&display=swap">
 <style>
-/* Layout: a patch series. Hero animates the backport story on a branch diagram; a live code view shows a hunk landing in the wrong function; the pipeline and gates run in sequence. */
+/* Layout: a dark forge-lit stage (header + hero) with a narrated canvas story, then a light patch-series page: terminal + code scene, a beam pipeline, a gate track. */
 :root{
   --paper:#F4F6F9;--panel:#FFFFFF;--ink:#0F1B2A;--muted:#526175;--line:#D5DCE5;
   --accent:#E8590C;--accent-ink:#B4440A;--code:#EDF1F6;--add:#1A7F37;--del:#C4202B;
+  --stage:#080E19;--stage-2:#0F1828;--stage-ink:#EEF2F8;--stage-muted:#93A0B5;--stage-line:rgba(255,255,255,.12);--glass:rgba(255,255,255,.05);
+  --ember:#FF5A1F;--amber:#FFB020;--rose:#F0386B;--cobalt:#4A74FF;--ok:#3DDC84;
+  --term:#0B1220;--term-ink:#D9E2EE;--term-muted:#7F8DA3;--term-ok:#3DDC84;
   --f-display:"Archivo","Noto Sans KR","Helvetica Neue",Arial,sans-serif;
   --f-body:"Instrument Sans","Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono","Noto Sans KR",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --s-1:.8125rem;--s0:1rem;--s1:1.125rem;--s2:1.5rem;--s3:2.25rem;--s4:clamp(2.4rem,5.4vw,4.1rem);
+  --s-1:.8125rem;--s0:1rem;--s1:1.125rem;--s2:1.5rem;--s3:2.25rem;--s4:clamp(2.4rem,5.2vw,4rem);
   --wrap:72rem;--r:6px;--ease:cubic-bezier(.2,.7,.2,1);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -37,12 +40,14 @@
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 var(--s0)/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
-img,svg{max-width:100%}
+img,svg,canvas{max-width:100%}
 a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wrap{max-width:var(--wrap);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 section{padding-block:clamp(3.5rem,8vw,6rem);border-top:1px solid var(--line)}
+main>section:first-child{border-top:0}
 h1,h2,h3{font-family:var(--f-display);font-stretch:112%;line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
 h1{font-size:var(--s4);font-weight:800}
 h2{font-size:var(--s3);font-weight:760}
@@ -59,80 +64,92 @@ html[lang="ko"] h1,html[lang="ko"] h2,html[lang="ko"] h3{font-stretch:100%;lette
 html[lang="ko"] h1{font-size:clamp(2.1rem,4.6vw,3.5rem)}
 html[lang="ko"] .eyebrow{letter-spacing:.02em}
 
-/* header */
-.top{padding-block:1.1rem}
+/* ---------- stage band ---------- */
+.band{position:relative;isolation:isolate;background:var(--stage);color:var(--stage-ink);overflow:hidden;clip-path:polygon(0 0,100% 0,100% calc(100% - 4.5vw),0 100%);padding-bottom:4.5vw}
+.aurora{position:absolute;inset:0;width:100%;height:100%;z-index:-2;filter:blur(36px) saturate(1.2);opacity:.85;pointer-events:none}
+.band::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(var(--stage-line) 1px,transparent 1px),linear-gradient(90deg,var(--stage-line) 1px,transparent 1px);background-size:56px 56px;opacity:.35;-webkit-mask-image:radial-gradient(ellipse 80% 70% at 70% 40%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse 80% 70% at 70% 40%,#000 20%,transparent 75%)}
+.top{padding-block:1.1rem;position:relative}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .brand{display:flex;align-items:baseline;gap:.6rem;text-decoration:none;min-width:0}
-.brand b{font:800 1.35rem/1 var(--f-display);font-stretch:118%;letter-spacing:-.01em}
-.brand span{font:500 var(--s-1) var(--f-mono);color:var(--muted);white-space:nowrap}
+.brand b{font:800 1.35rem/1 var(--f-display);font-stretch:118%;letter-spacing:-.01em;color:var(--stage-ink)}
+.brand span{font:500 var(--s-1) var(--f-mono);color:var(--stage-muted);white-space:nowrap}
 .nav{display:flex;align-items:center;gap:1.25rem}
-.nav a{text-decoration:none;font-size:.94rem;color:var(--muted);transition:color .2s}
-.nav a:hover{color:var(--ink)}
-.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--panel)}
-.lang button{border:0;background:transparent;padding:.3rem .6rem;border-radius:999px;font:600 .75rem/1 var(--f-mono);color:var(--muted);cursor:pointer;transition:background-color .2s,color .2s}
-.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.1rem;border-radius:var(--r);font:600 .95rem/1 var(--f-body);text-decoration:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;transition:transform .2s var(--ease),border-color .2s,box-shadow .2s}
+.nav a{text-decoration:none;font-size:.94rem;color:var(--stage-muted);transition:color .2s}
+.nav a:hover{color:var(--stage-ink)}
+.lang{display:inline-flex;border:1px solid var(--stage-line);border-radius:999px;padding:2px;background:var(--glass)}
+.lang button{border:0;background:transparent;padding:.3rem .6rem;border-radius:999px;font:600 .75rem/1 var(--f-mono);color:var(--stage-muted);cursor:pointer;transition:background-color .2s,color .2s}
+.lang button[aria-pressed="true"]{background:var(--stage-ink);color:var(--stage)}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.15rem;border-radius:var(--r);font:600 .95rem/1 var(--f-body);text-decoration:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;transition:transform .2s var(--ease),border-color .2s,box-shadow .25s}
 .btn:hover{border-color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#0F1B2A}
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px -8px var(--accent)}
-.nav .btn{padding:.55rem .9rem;color:#0F1B2A}
+.btn.primary{background:linear-gradient(135deg,var(--ember),var(--amber));border-color:transparent;color:#0F1B2A;box-shadow:0 8px 28px -10px var(--ember)}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 36px -12px var(--ember)}
+.band .btn:not(.primary){background:var(--glass);border-color:var(--stage-line);color:var(--stage-ink);backdrop-filter:blur(8px)}
+.band .btn:not(.primary):hover{border-color:var(--stage-muted)}
+.nav .btn{padding:.55rem .9rem}
 @media (max-width:860px){.nav a:not(.btn){display:none}}
 @media (max-width:520px){.brand span{display:none}.nav{gap:.6rem}.nav .btn{padding:.5rem .7rem;font-size:.85rem}}
 
-/* hero */
-.hero{border-top:0;padding-block:clamp(2.5rem,6vw,4.5rem) clamp(3.5rem,8vw,6rem)}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(2rem,5vw,4rem);align-items:center}
+.hero{border-top:0;padding-block:clamp(2rem,5vw,4rem) clamp(2.5rem,6vw,4.5rem);position:relative}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(2rem,5vw,4rem);align-items:center}
 .hero-copy{display:grid;gap:1.4rem;min-width:0}
 .hero-copy>*{animation:rise .9s var(--ease) both}
 .hero-copy>:nth-child(2){animation-delay:.08s}.hero-copy>:nth-child(3){animation-delay:.18s}.hero-copy>:nth-child(4){animation-delay:.28s}
-@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+.hero .eyebrow{color:var(--amber)}
+.hero h1{color:var(--stage-ink)}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--ember) 0%,var(--amber) 30%,var(--rose) 55%,var(--ember) 80%,var(--amber) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 7s linear infinite}
+@keyframes shine{to{background-position:-250% 0}}
+.hero .lede{color:var(--stage-muted)}
 .cta-row{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.4rem}
-.fig{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.25rem 1.25rem 1rem;min-width:0}
-.fig figcaption{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin-top:.8rem;font:500 var(--s-1)/1.4 var(--f-mono);color:var(--muted)}
-.fig figcaption i{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.4rem;vertical-align:-1px}
-@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}}
-#hero-svg{display:block;width:100%;height:auto;overflow:visible}
-#hero-svg .tb{transform-box:fill-box;transform-origin:center}
-#hero-svg .lbl{font:600 13px var(--f-mono);fill:var(--muted)}
-#hero-svg .lane{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:1 1;stroke-dashoffset:0}
-#hero-svg .lane.v{stroke:var(--muted);stroke-opacity:.45}
-#hero-svg .cm{fill:var(--panel);stroke:var(--muted);stroke-width:2}
-#hero-svg .vc{fill:var(--muted);fill-opacity:.55}
-#hero-svg .mk{fill:none;stroke:#fff;stroke-width:10;stroke-dasharray:1 1;stroke-dashoffset:0}
-#hero-svg .ok{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:4 5}
-#hero-svg .okn circle{fill:var(--panel);stroke:var(--muted);stroke-width:2}
-#hero-svg .okn path{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#hero-svg .bad{fill:none;stroke:var(--del);stroke-width:2;stroke-dasharray:4 5}
-#hero-svg .xm{stroke:var(--del);stroke-width:3;stroke-linecap:round}
-#hero-svg .t-bad{font:600 12px var(--f-mono);fill:var(--del)}
-#hero-svg .pw{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1 1;stroke-dashoffset:0}
-#hero-svg .fix,#hero-svg .end{fill:var(--accent);stroke:var(--panel);stroke-width:3}
-#hero-svg .ring{fill:none;stroke:var(--accent);stroke-width:2;opacity:0}
-#hero-svg .t-fix{font:700 13px var(--f-mono);fill:var(--accent-ink)}
-#hero-svg .pwl rect{fill:var(--panel);stroke:var(--accent);stroke-width:1.5}
-#hero-svg .pwl text{font:700 12px var(--f-mono);fill:var(--accent-ink)}
-#hero-svg .chip .base{fill:none;stroke:var(--line);stroke-width:1.5}
-#hero-svg .chip .lit{fill:color-mix(in srgb,var(--accent) 16%,transparent);stroke:var(--accent);stroke-width:1.5}
-#hero-svg .chip .ck{fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0}
-#hero-svg .chip text{font:600 11px var(--f-mono);fill:var(--ink)}
-#hero-svg .pk{opacity:0}
-#hero-svg .pk-ok{fill:var(--muted)}#hero-svg .pk-bad{fill:var(--del)}#hero-svg .pk-pw{fill:var(--accent)}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
 
-/* grids */
+.stage-card{margin:0;min-width:0;position:relative;border-radius:14px;border:1px solid var(--stage-line);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 40px 90px -40px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .6s var(--ease);will-change:transform}
+.stage-card::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(140deg,var(--ember),transparent 35%,transparent 65%,var(--cobalt));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
+#hero-cv{display:block;width:100%;aspect-ratio:560/360;height:auto}
+.stage-card figcaption{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;padding:.2rem 1.1rem 1rem;font:500 var(--s-1)/1.4 var(--f-mono);color:var(--stage-muted)}
+.stage-card figcaption i{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.4rem;vertical-align:-1px}
+
+/* beat captions (shared) */
+.beat{display:grid;gap:.55rem;padding:.9rem 1.1rem .75rem}
+.segs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.segs i{display:block;height:3px;border-radius:2px;overflow:hidden;background:var(--stage-line)}
+.segs b{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--amber));transform:scaleX(1);transform-origin:left}
+.brow{display:flex;gap:.7rem;align-items:baseline;min-height:2.9em}
+.bn{font:700 .78rem/1 var(--f-mono);color:var(--amber);flex:none}
+.bt{font:500 .95rem/1.45 var(--f-body);color:var(--stage-ink);min-width:0}
+.bt code{color:var(--amber)}
+
+/* ---------- light page ---------- */
 .cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.5rem;display:grid;gap:.7rem;align-content:start;min-width:0;transition:border-color .25s,transform .25s var(--ease)}
-.card:hover{border-color:var(--muted);transform:translateY(-2px)}
+.card{background:radial-gradient(380px circle at var(--mx,-400px) var(--my,-400px),color-mix(in srgb,var(--accent) 11%,transparent),transparent 65%),var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.5rem;display:grid;gap:.7rem;align-content:start;min-width:0;transition:border-color .25s,transform .3s var(--ease)}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));transform:translateY(-3px)}
 .card p{color:var(--muted)}
 @media (max-width:860px){.cols3{grid-template-columns:1fr}}
 
-/* code view */
-.split{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(2rem,5vw,4rem);align-items:center}
+/* code scene */
+.split{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(2rem,5vw,4rem);align-items:center}
 .split .sec-head{margin:0}
-@media (max-width:860px){.split{grid-template-columns:1fr}}
-.code{margin:0;background:var(--code);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;min-width:0}
-.code-bar{display:flex;justify-content:space-between;gap:1rem;padding:.6rem 1rem;border-bottom:1px solid var(--line);font:600 var(--s-1) var(--f-mono);color:var(--muted)}
-.code-body{position:relative;overflow-x:auto;padding-block:.6rem}
-.lines{position:relative;z-index:1;list-style:none;margin:0;padding:0;min-width:max-content;font:400 .8rem/1.8 var(--f-mono);tab-size:4}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.code{margin:0;background:var(--code);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0;transition:box-shadow .5s,border-color .5s}
+.code.alarm{border-color:var(--del);animation:alarm .9s ease-in-out 3}
+@keyframes alarm{50%{box-shadow:0 0 0 3px color-mix(in srgb,var(--del) 35%,transparent),0 30px 70px -30px var(--del)}}
+.code.good{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent),0 30px 70px -32px var(--accent)}
+.code .beat{background:var(--term);border-bottom:1px solid var(--stage-line)}
+.term{background:var(--term);color:var(--term-ink);font:400 .76rem/1.75 var(--f-mono);padding:.2rem 1.1rem .85rem;word-break:break-all}
+html[lang="ko"] .term{word-break:break-all}
+.tl{white-space:pre-wrap;min-height:1.75em}
+.ps{color:var(--amber);margin-right:.6ch}
+.caret{display:inline-block;width:.55em;height:1.05em;background:var(--amber);vertical-align:-2px;margin-left:2px;opacity:0}
+.term.typing .caret{opacity:1;animation:blink .9s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.o{transition:opacity .25s,transform .25s}
+.o.hide{opacity:0;transform:translateY(3px)}
+.okline{color:var(--term-ok)}
+.okline::before{content:"✓ "}
+.code[data-s="3"] .okline,.code[data-s="4"] .okline{color:var(--term-muted);text-decoration:line-through;text-decoration-color:var(--rose);text-decoration-thickness:2px}
+.code-bar{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 1rem;border-bottom:1px solid var(--line);font:600 var(--s-1) var(--f-mono);color:var(--muted)}
+.code-body{position:relative;overflow-x:auto;padding-block:.5rem}
+.lines{position:relative;z-index:1;list-style:none;margin:0;padding:0;min-width:max-content;font:400 .79rem/1.8 var(--f-mono);tab-size:4}
 .lines li{display:grid;grid-template-columns:3rem auto auto;justify-content:start;align-items:center;white-space:pre;padding-right:1rem;transition:background-color .35s}
 .ln{color:var(--muted);opacity:.65;text-align:right;padding-right:1rem;user-select:none}
 .fn .tx{color:var(--accent-ink);font-weight:600}
@@ -141,61 +158,88 @@ html[lang="ko"] .eyebrow{letter-spacing:.02em}
 .fold .tx{font-style:italic;font-size:.92em}
 .ins{max-height:0;opacity:0;overflow:hidden;transition:max-height .45s var(--ease),opacity .3s,background-color .35s}
 .ins.on{max-height:1.9em;opacity:1}
-.ins .ln{opacity:1;font-weight:600}
+.ins .ln{opacity:1;font-weight:700}
+.ins .ln,.ins .tx{transition:color .3s}
 .ins.bad .ln,.ins.bad .tx{color:var(--del)}
-.ins.bad.on{background:color-mix(in srgb,var(--del) 12%,transparent)}
-.ins.good .ln,.ins.good .tx{color:var(--add)}
-.ins.good.on{background:color-mix(in srgb,var(--add) 13%,transparent)}
-.held.hot{background:color-mix(in srgb,var(--del) 13%,transparent)}
+.ins.bad.on{background:color-mix(in srgb,var(--del) 14%,transparent)}
+.ins.bad.calm .ln,.ins.bad.calm .tx,.ins.good .ln,.ins.good .tx{color:var(--add)}
+.ins.bad.calm.on,.ins.good.on{background:color-mix(in srgb,var(--add) 14%,transparent)}
+.held.hot{background:color-mix(in srgb,var(--del) 14%,transparent)}
 .held.hot .tx{color:var(--del);font-style:normal;font-weight:600}
-.tag{margin-left:1.1rem;font:600 .66rem/1 var(--f-body);letter-spacing:.04em;text-transform:uppercase;padding:.3rem .5rem;border-radius:999px;border:1px solid currentColor;opacity:0;transform:translateX(-6px);transition:opacity .35s,transform .35s var(--ease)}
-.tag.bad{color:var(--del)}.tag.good{color:var(--add)}
-.code[data-s="3"] .tag.bad,.code[data-s="4"] .tag.good{opacity:1;transform:none}
-.scan{position:absolute;z-index:0;left:0;right:0;top:0;height:0;border-block:1px dashed var(--muted);opacity:0;transition:top .7s var(--ease),height .7s var(--ease),opacity .3s,background-color .35s,border-color .35s}
+.tag{margin-left:1.1rem;font:700 .64rem/1 var(--f-body);letter-spacing:.05em;text-transform:uppercase;padding:.3rem .5rem;border-radius:999px;border:1px solid currentColor;opacity:0;transform:translateX(-6px);transition:opacity .35s,transform .35s var(--ease)}
+.tag.bad,.tag.held{color:var(--del)}.tag.good{color:var(--add)}
+.code[data-s="3"] .tag.bad,.code[data-s="3"] .tag.held,.code[data-s="4"] .tag.held,.code[data-s="4"] .tag.good{opacity:1;transform:none}
+.code.alarm .tag.bad{animation:jolt .35s ease-in-out 3}
+@keyframes jolt{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.scan{position:absolute;z-index:0;left:0;right:0;top:0;height:0;border-block:1px dashed var(--muted);opacity:0;transition:top .6s var(--ease),height .6s var(--ease),opacity .3s,background .35s,border-color .35s,box-shadow .35s}
 .code[data-scan="seek"] .scan{opacity:1}
-.code[data-scan="match"] .scan{opacity:1;border-color:transparent;background:color-mix(in srgb,var(--accent) 15%,transparent)}
-.code[data-scan="fix"] .scan{opacity:1;border-color:transparent;background:color-mix(in srgb,var(--add) 9%,transparent)}
-.code-cap{display:flex;gap:.8rem;align-items:flex-start;padding:.85rem 1rem;border-top:1px solid var(--line);font-size:.92rem;min-height:4.4em}
-.dots{display:flex;gap:4px;padding-top:.55em;flex:none}
-.dots i{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background-color .3s,transform .3s}
-.dots i.on{background:var(--accent);transform:scale(1.3)}
-#cap{min-width:0}
+.code[data-scan="match"] .scan{opacity:1;border-color:transparent;background:color-mix(in srgb,var(--amber) 18%,transparent)}
+.code[data-scan="pw"] .scan{opacity:1;border-color:transparent;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 24%,transparent),transparent 75%);box-shadow:inset 3px 0 0 var(--accent)}
 
 /* pipeline */
+.beam{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:48px;margin-bottom:.9rem}
+.brail,.bfill{position:absolute;top:50%;height:2px;margin-top:-1px;left:12.5%;right:12.5%}
+.brail{background:var(--line)}
+.bfill{right:auto;width:75%;background:linear-gradient(90deg,var(--accent),var(--amber));box-shadow:0 0 12px var(--accent);transform-origin:left;transform:scaleX(0)}
+.node{position:relative;z-index:1;justify-self:center;align-self:center;width:14px;height:14px;border-radius:50%;background:var(--panel);border:2px solid var(--line);transition:background-color .3s,border-color .3s,box-shadow .3s}
+.node.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 18%,transparent),0 0 22px var(--accent)}
+.node.done{background:var(--add);border-color:var(--add)}
+.token{position:absolute;z-index:2;left:0;top:50%;transform:translate(-200px,-50%);opacity:0;pointer-events:none}
+.token span{display:block;padding:.4rem .75rem;border-radius:999px;background:var(--ink);color:var(--paper);font:700 .72rem/1 var(--f-mono);white-space:nowrap;box-shadow:0 10px 26px -10px var(--accent),0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+@media (max-width:960px){.beam{display:none}}
 .steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
-.step{position:relative;padding:1.5rem;display:grid;gap:.75rem;align-content:start;border-left:1px solid var(--line);min-width:0;transition:background-color .4s}
+.step{position:relative;padding:1.5rem;display:grid;gap:.75rem;align-content:start;grid-template-rows:auto auto auto 1fr auto;border-left:1px solid var(--line);min-width:0;transition:background-color .35s}
 .step:first-child{border-left:0}
-.step::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left}
-.step.on::before{transform:scaleX(1);transition:transform 1.5s linear}
+.step::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--accent),var(--amber));transform:scaleX(0);transform-origin:left}
+.step.on::before{transform:scaleX(1);transition:transform .9s var(--ease)}
 .step.done::before{transform:scaleX(1);opacity:.35;transition:opacity .4s}
 .step.on{background:color-mix(in srgb,var(--accent) 6%,var(--panel))}
+.ic{width:42px;height:42px;padding:9px;border-radius:10px;border:1px solid var(--line);color:var(--muted);transition:color .3s,border-color .3s,box-shadow .3s}
+.ic *{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0}
+.step.on .ic{color:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent),0 10px 26px -10px var(--accent)}
+.step.on .ic *{animation:icd .7s var(--ease) both}
+@keyframes icd{from{stroke-dashoffset:1}}
+.step.done .ic{color:var(--add);border-color:color-mix(in srgb,var(--add) 45%,var(--line))}
 .step h3{transition:color .3s}
 .step.on h3{color:var(--accent-ink)}
 .step .eyebrow{color:var(--muted)}
 .step .eyebrow b{color:var(--accent-ink);font-weight:600}
 .step p{color:var(--muted)}
+.step .out{display:flex;gap:.45rem;align-items:center;padding-top:.6rem;border-top:1px dashed var(--line);font:600 .78rem/1.3 var(--f-mono);color:var(--muted);transition:color .3s}
+.step.on .out,.step.done .out{color:var(--accent-ink)}
 @media (max-width:960px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.step:nth-child(3){border-left:0}.step:nth-child(n+3){border-top:1px solid var(--line)}}
 @media (max-width:560px){.steps{grid-template-columns:1fr}.step{border-left:0}.step+.step{border-top:1px solid var(--line)}}
 
 /* gates */
 .gates-wrap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:1.25rem;align-items:start}
 @media (max-width:900px){.gates-wrap{grid-template-columns:1fr}}
+.gates-col{position:relative;padding-left:32px;min-width:0}
+.track{position:absolute;left:10px;top:var(--t0,0px);height:calc(var(--t1,0px) - var(--t0,0px));width:2px;background:var(--line)}
+.tfill{position:absolute;inset:0;background:linear-gradient(var(--accent),var(--add));transform-origin:top}
+.tdot{position:absolute;left:4px;top:0;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 20%,transparent),0 0 22px var(--accent);opacity:0;transition:opacity .3s}
 .gates{list-style:none;margin:0;padding:0;display:grid;gap:.75rem}
-.gate{display:grid;grid-template-columns:5.5rem minmax(0,1fr) 22px;gap:1rem;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.25rem;transition:border-color .3s}
+.gate{display:grid;grid-template-columns:5.5rem minmax(0,1fr) 22px;gap:1rem;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.25rem;transition:border-color .3s,box-shadow .3s}
 .gate .id{font:600 var(--s-1) var(--f-mono);color:var(--accent-ink)}
 .gate h3{margin-bottom:.3rem}
 .gate p{color:var(--muted)}
 .gate p code{background:var(--code);padding:.1em .35em;border-radius:3px}
+.log{display:flex;flex-wrap:wrap;gap:.15rem .9rem;margin-top:.7rem;padding:.45rem .7rem;border-radius:4px;background:var(--term);color:var(--term-ink);font:400 .72rem/1.5 var(--f-mono);word-break:break-all}
+.log .lr{color:var(--term-ok);transition:opacity .3s}
+.log .lr::before{content:"✓ "}
+.gate.idle .log,.gate.run .log{clip-path:inset(0 100% 0 0)}
+.gate.run .log{clip-path:inset(0 0 0 0);transition:clip-path .55s steps(26)}
+.gate.idle .lr,.gate.run .lr{opacity:0}
+.gate.run{border-color:var(--accent);box-shadow:0 12px 34px -18px var(--accent)}
 .st{width:22px;height:22px;align-self:center}
 .st circle{fill:none;stroke:var(--add);stroke-width:2;transition:stroke .3s}
 .st path{fill:none;stroke:var(--add);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0;transition:stroke-dashoffset .4s var(--ease)}
 .gate.idle .st circle{stroke:var(--line)}
 .gate.idle .st path,.gate.run .st path{stroke-dashoffset:1;transition:none}
-.gate.run{border-color:var(--accent)}
 .gate.run .st circle{stroke:var(--accent);stroke-dasharray:.7 .3}
-.gate.run .st{animation:spin .8s linear infinite}
+.gate.run .st{animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (max-width:480px){.gate{grid-template-columns:minmax(0,1fr) 22px;gap:.4rem 1rem}.gate .id{grid-column:1/-1}}
+.note{font-size:var(--s-1);color:var(--muted);margin-top:.75rem}
 .limits{border:1px dashed var(--muted);border-radius:var(--r);padding:1.5rem;display:grid;gap:1rem}
 .limits ul{margin:0;padding-left:1.1rem;display:grid;gap:.75rem;color:var(--muted)}
 
@@ -215,7 +259,6 @@ html[lang="ko"] .eyebrow{letter-spacing:.02em}
 .mailbox{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.1rem}
 .mailbox a{font:600 1.05rem var(--f-mono);text-decoration:none;word-break:break-all;user-select:all;flex:1 1 14rem;min-width:0}
 
-/* footer */
 footer{border-top:1px solid var(--line);padding-block:2.5rem;font-size:var(--s-1);color:var(--muted)}
 footer .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:2rem}
 @media (max-width:760px){footer .wrap{grid-template-columns:1fr}}
@@ -227,80 +270,47 @@ footer a{color:var(--ink)}
 <!--ARTIFACT-HEAD-END-->
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <a class="brand" href="#"><b>Portwright</b><span>by Team PJ</span></a>
-    <nav class="nav" aria-label="Sections">
-      <a href="#problem" data-i18n="nav1">Problem</a><a href="#how" data-i18n="nav2">How it works</a><a href="#verify" data-i18n="nav3">Verification</a><a href="#status" data-i18n="nav4">Status</a>
-      <div class="lang" role="group" aria-label="Language"><button type="button" id="lang-en" data-lang-btn="en" aria-pressed="true">EN</button><button type="button" id="lang-ko" data-lang-btn="ko" aria-pressed="false">KO</button></div>
-      <a class="btn primary" href="#contact" data-i18n="navCta">Early access</a>
-    </nav>
-  </div>
-</header>
+<div class="band">
+  <canvas class="aurora" id="aurora" width="160" height="90" aria-hidden="true"></canvas>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><b>Portwright</b><span>by Team PJ</span></a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#problem" data-i18n="nav1">Problem</a><a href="#how" data-i18n="nav2">How it works</a><a href="#verify" data-i18n="nav3">Verification</a><a href="#status" data-i18n="nav4">Status</a>
+        <div class="lang" role="group" aria-label="Language"><button type="button" id="lang-en" data-lang-btn="en" aria-pressed="true">EN</button><button type="button" id="lang-ko" data-lang-btn="ko" aria-pressed="false">KO</button></div>
+        <a class="btn primary" href="#contact" data-i18n="navCta">Early access</a>
+      </nav>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="heroEy">Research preview</p>
+        <h1 data-i18n="heroH">Upstream security fixes, ported to <em>the kernel you actually ship.</em></h1>
+        <p class="lede" data-i18n="heroP">SoC vendor BSP kernels fall behind the stable trees, and upstream fixes stop applying cleanly. Portwright rewrites each fix for your vendor tree, then checks that it applies, compiles and boots before your engineers review it.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#contact" data-i18n="heroC1">Request early access</a>
+          <a class="btn" href="#how" data-i18n="heroC2">See how it works</a>
+        </div>
+      </div>
+      <figure class="stage-card" id="stage">
+        <div class="beat" id="hero-beat">
+          <div class="segs" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+          <div class="brow"><span class="bn">05</span><span class="bt">Four gates pass before it reaches you.</span></div>
+        </div>
+        <canvas id="hero-cv" role="img" aria-labelledby="fig-d"></canvas>
+        <p class="sr" id="fig-d" data-i18n="figT">An upstream fix is backported to the stable tree, fails to apply to the vendor kernel, and is ported to the vendor kernel by Portwright, which then passes four gates.</p>
+        <figcaption>
+          <span><i style="background:var(--ember)"></i><span data-i18n="lg1">Portwright port</span></span>
+          <span><i style="background:var(--rose)"></i><span data-i18n="lg2">stable patch rejected</span></span>
+          <span><i style="background:var(--cobalt);border-radius:2px"></i><span data-i18n="lg3">vendor-only commits</span></span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+</div>
 
 <main>
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-copy">
-      <p class="eyebrow" data-i18n="heroEy">Research preview</p>
-      <h1 data-i18n="heroH">Upstream security fixes, ported to the kernel you actually ship.</h1>
-      <p class="lede" data-i18n="heroP">SoC vendor BSP kernels fall behind the stable trees, and upstream fixes stop applying cleanly. Portwright rewrites each fix for your vendor tree, then checks that it applies, compiles and boots before your engineers review it.</p>
-      <div class="cta-row">
-        <a class="btn primary" href="#contact" data-i18n="heroC1">Request early access</a>
-        <a class="btn" href="#how" data-i18n="heroC2">See how it works</a>
-      </div>
-    </div>
-    <figure class="fig">
-      <svg id="hero-svg" viewBox="0 0 520 320" role="img" aria-labelledby="fig-t">
-        <title id="fig-t" data-i18n="figT">An upstream fix is backported to the stable tree, fails to apply to the vendor fork, and is ported to the vendor fork by Portwright, which then passes four gates.</title>
-        <defs>
-          <path id="g-ok" d="M300 52C332 52 352 96 352 135"/>
-          <path id="g-bad" d="M352 149C372 149 392 186 392 222"/>
-          <path id="g-pw" d="M300 52C420 52 474 110 474 222"/>
-          <mask id="m-ok" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="320"><path id="mk-ok" class="mk" pathLength="1" d="M300 52C332 52 352 96 352 135"/></mask>
-          <mask id="m-bad" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="320"><path id="mk-bad" class="mk" pathLength="1" d="M352 149C372 149 392 186 392 222"/></mask>
-        </defs>
-        <g id="h-all">
-          <text class="lbl" x="16" y="38" data-i18n="lMain">mainline</text>
-          <text class="lbl" x="104" y="128" data-i18n="lStable">stable (LTS)</text>
-          <text class="lbl" x="184" y="218" data-i18n="lVendor">vendor BSP fork</text>
-          <path class="lane" pathLength="1" d="M16 52H504"/>
-          <path class="lane" pathLength="1" d="M56 52C82 52 78 142 104 142H504"/>
-          <path class="lane v" pathLength="1" d="M136 142C162 142 158 232 184 232H504"/>
-          <circle class="cm tb" cx="120" cy="52" r="6"/><circle class="cm tb" cx="200" cy="52" r="6"/><circle class="cm tb" cx="250" cy="52" r="6"/>
-          <circle class="cm tb" cx="220" cy="142" r="6"/><circle class="cm tb" cx="280" cy="142" r="6"/>
-          <rect class="vc tb" x="214" y="226" width="12" height="12" rx="2"/><rect class="vc tb" x="244" y="226" width="12" height="12" rx="2"/><rect class="vc tb" x="284" y="226" width="12" height="12" rx="2"/><rect class="vc tb" x="324" y="226" width="12" height="12" rx="2"/>
-          <path class="ok" mask="url(#m-ok)" d="M300 52C332 52 352 96 352 135"/>
-          <g class="okn tb" id="h-okn"><circle cx="352" cy="142" r="7"/><path d="M348.5 142.2l2.4 2.4 4.4-4.8"/></g>
-          <path class="bad" mask="url(#m-bad)" d="M352 149C372 149 392 186 392 222"/>
-          <g class="tb" id="h-x"><g id="h-xin"><path class="xm" d="M384 224l16 16M400 224l-16 16"/></g></g>
-          <text class="t-bad" id="h-badlbl" x="378" y="262" text-anchor="end" data-i18n="lBad">does not apply</text>
-          <path class="pw" id="h-pw" pathLength="1" d="M300 52C420 52 474 110 474 222"/>
-          <circle class="ring tb" id="h-ring" cx="300" cy="52" r="10"/>
-          <circle class="fix tb" id="h-fix" cx="300" cy="52" r="10"/>
-          <text class="t-fix" id="h-fixlbl" x="300" y="24" text-anchor="middle" data-i18n="lFix">upstream fix</text>
-          <g class="pwl tb" id="h-pwl"><rect x="386" y="83" width="92" height="24" rx="12"/><text x="432" y="99" text-anchor="middle">Portwright</text></g>
-          <circle class="ring tb" id="h-endring" cx="474" cy="232" r="9"/>
-          <circle class="end tb" id="h-end" cx="474" cy="232" r="9"/>
-          <text class="lbl" id="h-glbl" x="16" y="297" data-i18n="gTitle">gates</text>
-          <g class="chip" transform="translate(200 280)"><rect class="base" width="66" height="24" rx="12"/><rect class="lit" width="66" height="24" rx="12"/><path class="ck" pathLength="1" d="M11 12.5l3 3 6-6.5"/><text x="41" y="16.5" text-anchor="middle" data-i18n="g1">apply</text></g>
-          <g class="chip" transform="translate(274 280)"><rect class="base" width="66" height="24" rx="12"/><rect class="lit" width="66" height="24" rx="12"/><path class="ck" pathLength="1" d="M11 12.5l3 3 6-6.5"/><text x="41" y="16.5" text-anchor="middle" data-i18n="g2">build</text></g>
-          <g class="chip" transform="translate(348 280)"><rect class="base" width="66" height="24" rx="12"/><rect class="lit" width="66" height="24" rx="12"/><path class="ck" pathLength="1" d="M11 12.5l3 3 6-6.5"/><text x="41" y="16.5" text-anchor="middle" data-i18n="g3">match</text></g>
-          <g class="chip" transform="translate(422 280)"><rect class="base" width="66" height="24" rx="12"/><rect class="lit" width="66" height="24" rx="12"/><path class="ck" pathLength="1" d="M11 12.5l3 3 6-6.5"/><text x="41" y="16.5" text-anchor="middle" data-i18n="g4">boot</text></g>
-          <circle class="pk pk-ok" id="pk-ok" cx="0" cy="0" r="4"/>
-          <circle class="pk pk-bad" id="pk-bad" cx="0" cy="0" r="4"/>
-          <g class="pk" id="pk-pw"><circle class="pk-pw" cx="0" cy="0" r="11" opacity=".22"/><circle class="pk-pw" cx="0" cy="0" r="5"/></g>
-        </g>
-      </svg>
-      <figcaption>
-        <span><i style="background:var(--accent)"></i><span data-i18n="lg1">ported, compiled, booted</span></span>
-        <span><i style="background:var(--del)"></i><span data-i18n="lg2">stable patch rejected</span></span>
-        <span><i style="background:var(--muted);border-radius:2px"></i><span data-i18n="lg3">vendor-only commits</span></span>
-      </figcaption>
-    </figure>
-  </div>
-</section>
-
 <section id="problem">
   <div class="wrap">
     <div class="sec-head">
@@ -332,11 +342,21 @@ footer a{color:var(--ink)}
       <p class="lede" data-i18n="dP">Patch tools place a hunk by matching the lines around it. When two functions share those lines, a hunk can land in the wrong one and still apply without a warning. Portwright treats a clean apply as the first of four checks.</p>
     </div>
     <figure class="code" id="diff-fig" data-s="3" data-scan="off" aria-label="Illustration of a hunk applied to the wrong function">
+      <div class="beat">
+        <div class="segs" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b style="transform:scaleX(0)"></b></i></div>
+        <div class="brow"><span class="bn">04</span><span class="bt"><code>ring_reset()</code> already runs with the lock held. Taking it again deadlocks.</span></div>
+      </div>
+      <div class="term">
+        <div class="tl"><span class="ps">$</span><span class="ty">git apply -v fix.patch</span><span class="caret"></span></div>
+        <div class="tl o">Checking patch drivers/net/ring.c...</div>
+        <div class="tl o">Hunk #1 succeeded at 315 (offset -3 lines).</div>
+        <div class="tl o okline">Applied patch drivers/net/ring.c cleanly.</div>
+      </div>
       <div class="code-bar"><span>drivers/net/ring.c</span><span data-i18n="dIll">illustration</span></div>
       <div class="code-body">
         <div class="scan" aria-hidden="true"></div>
         <ol class="lines">
-          <li data-n="312" class="cmt held hot"><span class="ln">312</span><span class="tx">/* Caller must hold dev-&gt;lock. */</span></li>
+          <li data-n="312" class="cmt held hot"><span class="ln">312</span><span class="tx">/* Caller must hold dev-&gt;lock. */</span><span class="tag held" data-i18n="tagHeld">lock held</span></li>
           <li data-n="313" class="fn"><span class="ln">313</span><span class="tx">static void ring_reset(struct ring *r)</span></li>
           <li data-n="314"><span class="ln">314</span><span class="tx">{</span></li>
           <li data-n="315"><span class="ln">315</span><span class="tx">    struct ring_dev *dev = r-&gt;dev;</span></li>
@@ -358,7 +378,6 @@ footer a{color:var(--ink)}
           <li data-n="410"><span class="ln">410</span><span class="tx">}</span></li>
         </ol>
       </div>
-      <figcaption class="code-cap"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i class="on"></i><i></i></span><span id="cap"><code>ring_reset()</code> is called with the lock held. Taking it again deadlocks.</span></figcaption>
     </figure>
   </div>
 </section>
@@ -369,11 +388,14 @@ footer a{color:var(--ink)}
       <p class="eyebrow" data-i18n="hEy">How it works</p>
       <h2 data-i18n="hH">One CVE, four steps.</h2>
     </div>
-    <div class="steps">
-      <div class="step"><p class="eyebrow">[PATCH <b>1/4</b>]</p><h3 data-i18n="s1h">Triage</h3><p data-i18n="s1p">Find the upstream fix and check your tree. Skip what the vendor already fixed, files you don't have, and code your target doesn't build.</p></div>
-      <div class="step"><p class="eyebrow">[PATCH <b>2/4</b>]</p><h3 data-i18n="s2h">Port</h3><p data-i18n="s2p">An agent rewrites the upstream fix against your vendor tree, reading the code around each change instead of matching lines.</p></div>
-      <div class="step"><p class="eyebrow">[PATCH <b>3/4</b>]</p><h3 data-i18n="s3h">Challenge</h3><p data-i18n="s3p">A second agent, which never sees a reference answer, looks for incomplete or misplaced fixes. The author revises once.</p></div>
-      <div class="step"><p class="eyebrow">[PATCH <b>4/4</b>]</p><h3 data-i18n="s4h">Verify</h3><p data-i18n="s4p">The patch goes through four gates. You get the patch with its upstream reference and the log of every gate.</p></div>
+    <div class="flow">
+      <div class="beam" aria-hidden="true"><span class="brail"></span><span class="bfill"></span><span class="node"></span><span class="node"></span><span class="node"></span><span class="node"></span><span class="token"><span id="tok">CVE</span></span></div>
+      <div class="steps">
+        <div class="step"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M4 5h16l-6 7v6l-4 2v-8z"/></svg><p class="eyebrow">[PATCH <b>1/4</b>]</p><h3 data-i18n="s1h">Triage</h3><p data-i18n="s1p">Find the upstream fix and check your tree. Skip what the vendor already fixed, files you don't have, and code your target doesn't build.</p><p class="out"><span>→</span><span data-i18n="o1">upstream fix</span></p></div>
+        <div class="step"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6 4v8a4 4 0 0 0 4 4h8"/><path pathLength="1" d="M15 13l3 3-3 3"/></svg><p class="eyebrow">[PATCH <b>2/4</b>]</p><h3 data-i18n="s2h">Port</h3><p data-i18n="s2p">An agent rewrites the upstream fix against your vendor tree, reading the code around each change instead of matching lines.</p><p class="out"><span>→</span><span data-i18n="o2">draft patch</span></p></div>
+        <div class="step"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle pathLength="1" cx="10.5" cy="10.5" r="5.5"/><path pathLength="1" d="M15 15l5 5"/></svg><p class="eyebrow">[PATCH <b>3/4</b>]</p><h3 data-i18n="s3h">Challenge</h3><p data-i18n="s3p">A second agent, which never sees a reference answer, looks for incomplete or misplaced fixes. The author revises once.</p><p class="out"><span>→</span><span data-i18n="o3">revised patch</span></p></div>
+        <div class="step"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path pathLength="1" d="M8.5 12l2.5 2.5 4.5-5"/></svg><p class="eyebrow">[PATCH <b>4/4</b>]</p><h3 data-i18n="s4h">Verify</h3><p data-i18n="s4p">The patch goes through four gates. You get the patch with its upstream reference and the log of every gate.</p><p class="out"><span>→</span><span data-i18n="o4">verified patch</span></p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -385,12 +407,19 @@ footer a{color:var(--ink)}
       <h2 data-i18n="vH">Four gates before your engineers look at it.</h2>
     </div>
     <div class="gates-wrap">
-      <ol class="gates">
-        <li class="gate"><span class="id" data-i18n="g1id">G1 apply</span><div><h3 data-i18n="g1h">Applies</h3><p data-i18n="g1p">The patch passes <code>git apply --check</code> on a clean checkout of your vendor tree.</p></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
-        <li class="gate"><span class="id" data-i18n="g2id">G2 build</span><div><h3 data-i18n="g2h">Compiles</h3><p data-i18n="g2p">Every touched C file is cross-compiled for your target. A warning the unpatched tree doesn't have counts as a failure.</p></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
-        <li class="gate"><span class="id" data-i18n="g3id">G3 match</span><div><h3 data-i18n="g3h">Matches</h3><p data-i18n="g3p">When a human stable backport exists, the changed lines are compared with it. Every difference gets a written review.</p></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
-        <li class="gate"><span class="id" data-i18n="g4id">G4 boot</span><div><h3 data-i18n="g4h">Boots</h3><p data-i18n="g4p">All patches are applied together, and the kernel is built and booted in QEMU.</p></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
-      </ol>
+      <div>
+        <div class="gates-col">
+          <span class="track" aria-hidden="true"><span class="tfill"></span></span>
+          <span class="tdot" aria-hidden="true"></span>
+          <ol class="gates">
+            <li class="gate"><span class="id" data-i18n="g1id">G1 apply</span><div><h3 data-i18n="g1h">Applies</h3><p data-i18n="g1p">The patch passes <code>git apply --check</code> on a clean checkout of your vendor tree.</p><code class="log"><span>$ git apply --check fix.patch</span><span class="lr">ok</span></code></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
+            <li class="gate"><span class="id" data-i18n="g2id">G2 build</span><div><h3 data-i18n="g2h">Compiles</h3><p data-i18n="g2p">Every touched C file is cross-compiled for your target. A warning the unpatched tree doesn't have counts as a failure.</p><code class="log"><span>$ make ARCH=arm64 drivers/net/ring.o</span><span class="lr">no new warnings</span></code></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
+            <li class="gate"><span class="id" data-i18n="g3id">G3 match</span><div><h3 data-i18n="g3h">Matches</h3><p data-i18n="g3p">When a human stable backport exists, the changed lines are compared with it. Every difference gets a written review.</p><code class="log"><span># compare with stable backport</span><span class="lr">equivalent</span></code></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
+            <li class="gate"><span class="id" data-i18n="g4id">G4 boot</span><div><h3 data-i18n="g4h">Boots</h3><p data-i18n="g4p">All patches are applied together, and the kernel is built and booted in QEMU.</p><code class="log"><span>$ qemu-system-aarch64 -M virt ...</span><span class="lr">init reached</span></code></div><svg class="st" viewBox="0 0 22 22" aria-hidden="true"><circle pathLength="1" cx="11" cy="11" r="9"/><path pathLength="1" d="M7 11.5l2.8 2.8L15.2 8.6"/></svg></li>
+          </ol>
+        </div>
+        <p class="note" data-i18n="logNote">Log lines are illustrative.</p>
+      </div>
       <aside class="limits">
         <p class="eyebrow" data-i18n="limT">What the gates don't prove yet</p>
         <ul>
@@ -462,36 +491,37 @@ footer a{color:var(--ink)}
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const wait=ms=>new Promise(r=>setTimeout(r,ms)),frame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const EASE='cubic-bezier(.2,.7,.2,1)',BACK='cubic-bezier(.34,1.56,.64,1)';
+const EASE='cubic-bezier(.2,.7,.2,1)';
+const cl=x=>x<0?0:x>1?1:x,eo=x=>1-Math.pow(1-x,3),eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,back=x=>{const a=1.70158;return 1+(a+1)*Math.pow(x-1,3)+a*Math.pow(x-1,2)};
 
-/* ---------- i18n ---------- */
-const sup1='<sup><a href="#ref1">[1]</a></sup>',sup23='<sup><a href="#ref2">[2]</a><a href="#ref3">[3]</a></sup>';
+/* ================= i18n ================= */
+const s1='<sup><a href="#ref1">[1]</a></sup>',s23='<sup><a href="#ref2">[2]</a><a href="#ref3">[3]</a></sup>';
 const KO={
 nav1:'문제',nav2:'작동 방식',nav3:'검증',nav4:'현황',navCta:'얼리 액세스',
-heroEy:'리서치 프리뷰',heroH:'업스트림 보안 수정을 실제 출하 커널로 옮깁니다.',
+heroEy:'리서치 프리뷰',heroH:'업스트림 보안 수정을 <em>실제 출하 커널</em>로 옮깁니다.',
 heroP:'SoC 벤더 BSP 커널은 stable 트리보다 뒤처지고, 업스트림 수정은 그대로 적용되지 않게 됩니다. Portwright는 각 수정을 벤더 트리에 맞게 다시 작성하고, 엔지니어가 검토하기 전에 적용·컴파일·부팅되는지 확인합니다.',
 heroC1:'얼리 액세스 신청',heroC2:'작동 방식 보기',
 figT:'업스트림 수정이 stable 트리에는 백포트되지만 벤더 커널에는 적용되지 않고, Portwright가 이를 벤더 커널로 옮긴 뒤 네 개의 관문을 통과합니다.',
-lMain:'메인라인',lStable:'stable (LTS)',lVendor:'벤더 BSP 커널',lFix:'업스트림 수정',lBad:'적용 실패',gTitle:'검증 관문',g1:'적용',g2:'컴파일',g3:'비교',g4:'부팅',
-lg1:'이식·컴파일·부팅 완료',lg2:'stable 패치 적용 실패',lg3:'벤더 전용 커밋',
+lg1:'Portwright 이식',lg2:'stable 패치 적용 실패',lg3:'벤더 전용 커밋',
 pEy:'문제',pH:'수정은 이미 있습니다. 여러분의 트리에 맞지 않을 뿐입니다.',
 c1h:'벤더 커널은 점점 멀어집니다',c1p:'벤더 BSP 커널은 LTS 릴리스에서 갈라져 나와 자체 드라이버와 보드 코드를 더합니다. 멀어질수록 업스트림·stable 패치가 그대로 적용되지 않는 경우가 늘어납니다.',
-c2h:'모든 버그 수정이 CVE가 될 수 있습니다',c2p:'커널 CVE 팀은 stable 트리에 들어간 버그 수정이라면 찾아내는 대로 CVE를 부여하고, stable 업데이트를 모두 받으라고 권합니다.'+sup1+' 고정된 벤더 커널은 이를 통째로 받을 수 없어서, 팀이 수정을 하나씩 이식합니다.',
-c3h:'규제가 요구하기 시작했습니다',c3p:'EU 사이버 복원력법(CRA)에 따라 제조사는 2026년 9월 11일부터 실제로 악용된 취약점을 신고해야 하며, 첫 단계는 24시간 안의 조기 경보입니다. 나머지 의무 대부분은 2027년 12월 11일부터 적용됩니다.'+sup23,
+c2h:'모든 버그 수정이 CVE가 될 수 있습니다',c2p:'커널 CVE 팀은 stable 트리에 들어간 버그 수정이라면 찾아내는 대로 CVE를 부여하고, stable 업데이트를 모두 받으라고 권합니다.'+s1+' 고정된 벤더 커널은 이를 통째로 받을 수 없어서, 팀이 수정을 하나씩 이식합니다.',
+c3h:'규제가 요구하기 시작했습니다',c3p:'EU 사이버 복원력법(CRA)에 따라 제조사는 2026년 9월 11일부터 실제로 악용된 취약점을 신고해야 하며, 첫 단계는 24시간 안의 조기 경보입니다. 나머지 의무 대부분은 2027년 12월 11일부터 적용됩니다.'+s23,
 dEy:'깨끗하게 적용돼도 끝이 아닌 이유',dH:'적용됐다고 고쳐진 것은 아닙니다.',
 dP:'패치 도구는 주변 줄을 맞춰 보고 hunk의 위치를 정합니다. 두 함수가 같은 줄을 갖고 있으면, hunk가 엉뚱한 함수에 들어가도 경고 하나 없이 적용됩니다. Portwright에게 깨끗한 적용은 네 가지 검사 중 첫 번째일 뿐입니다.',
-dIll:'예시',tagDead:'데드락',tagFix:'올바른 함수',fold:'84줄 생략',
+dIll:'예시',tagDead:'데드락',tagFix:'올바른 함수',tagHeld:'이미 lock 보유',fold:'84줄 생략',
 hEy:'작동 방식',hH:'CVE 하나, 네 단계.',
 s1h:'분류',s1p:'업스트림 수정을 찾고 여러분의 트리를 확인합니다. 벤더가 이미 고친 것, 트리에 없는 파일, 타깃에서 빌드하지 않는 코드는 건너뜁니다.',
 s2h:'이식',s2p:'에이전트가 줄을 맞추는 대신 변경 주변의 코드를 읽고, 업스트림 수정을 벤더 트리에 맞게 다시 작성합니다.',
 s3h:'교차 검토',s3p:'정답을 본 적 없는 두 번째 에이전트가 덜 고쳐졌거나 잘못 들어간 곳을 찾습니다. 작성 에이전트는 한 번 수정합니다.',
 s4h:'검증',s4p:'패치는 네 개의 관문을 거칩니다. 업스트림 출처가 달린 패치와 관문별 로그를 함께 받습니다.',
+o1:'업스트림 수정',o2:'초안 패치',o3:'수정된 패치',o4:'검증된 패치',
 vEy:'검증',vH:'엔지니어가 보기 전에 거치는 네 개의 관문.',
 g1id:'G1 적용',g1h:'적용',g1p:'깨끗한 벤더 트리 체크아웃에서 <code>git apply --check</code>를 통과합니다.',
 g2id:'G2 빌드',g2h:'컴파일',g2p:'수정된 C 파일을 모두 타깃용으로 크로스 컴파일합니다. 수정 전 트리에 없던 경고가 하나라도 생기면 실패입니다.',
 g3id:'G3 비교',g3h:'비교',g3p:'사람이 만든 stable 백포트가 있으면 바뀐 줄을 그것과 비교합니다. 다른 부분은 모두 이유를 적어 검토합니다.',
 g4id:'G4 부팅',g4h:'부팅',g4p:'모든 패치를 함께 적용한 커널을 빌드해 QEMU에서 부팅합니다.',
-limT:'관문이 아직 증명하지 못하는 것',
+logNote:'로그는 예시입니다.',limT:'관문이 아직 증명하지 못하는 것',
 lim1:'컴파일과 부팅을 통과한 패치도 실행 중에는 버그를 막지 못할 수 있습니다. 재현 테스트와 KUnit 검사가 다음 단계입니다.',
 lim2:'부팅 검사는 커널 이미지에 포함된 코드만 실행합니다. 모듈 안의 수정은 컴파일 관문으로 확인합니다.',
 lim3:'동등성 검토는 지금은 AI가 합니다. 커널 엔지니어의 블라인드 검토가 다음 단계입니다.',
@@ -504,34 +534,53 @@ ctEy:'얼리 액세스',ctH:'커널을 가져오세요.',
 ctP:'벤더 BSP 커널로 리눅스를 출하하는 기기 제조사 중, 자사 트리에서 Portwright를 써 보실 곳을 찾고 있습니다. SoC, BSP 브랜치, 타깃 아키텍처를 알려 주세요.',
 copy:'복사'};
 const UI={en:{copied:'Copied',selected:'Selected'},ko:{copied:'복사됨',selected:'선택됨'}};
-const CAP={
-en:['The upstream hunk for <code>ring_stop()</code> expects its context near line 318.',
-'Vendor changes moved <code>ring_stop()</code> to line 404. The tool searches nearby for the same lines.',
-'It finds them first in <code>ring_reset()</code>. The patch applies cleanly.',
-'<code>ring_reset()</code> is called with the lock held. Taking it again deadlocks.',
+const HB={en:['Upstream fixes a bug in mainline.','The fix is backported to the stable LTS tree.','The same patch fails on your vendor kernel.','Portwright rewrites it for your tree.','Four gates pass before it reaches you.'],
+ko:['메인라인에서 버그가 수정됩니다.','수정이 stable LTS 트리로 백포트됩니다.','같은 패치가 벤더 커널에는 적용되지 않습니다.','Portwright가 여러분의 트리에 맞게 다시 작성합니다.','네 개의 관문을 통과한 뒤에 전달됩니다.']};
+const CB={en:['The upstream fix for <code>ring_stop()</code> is applied with <code>git apply</code>.',
+'Vendor changes shifted the file. <code>git apply</code> finds the same context 3 lines earlier.',
+'The hunk lands in <code>ring_reset()</code>, and the patch reports a clean apply.',
+'<code>ring_reset()</code> already runs with the lock held. Taking it again deadlocks.',
 'Portwright reads both functions and puts the fix in <code>ring_stop()</code>.'],
-ko:['<code>ring_stop()</code>용 업스트림 hunk는 318번째 줄 근처에서 문맥을 찾습니다.',
-'벤더 변경으로 <code>ring_stop()</code>은 404번째 줄로 밀렸습니다. 도구는 근처에서 같은 줄을 찾습니다.',
-'같은 줄을 <code>ring_reset()</code>에서 먼저 찾고, 패치는 깨끗하게 적용됩니다.',
-'<code>ring_reset()</code>은 lock을 잡은 채로 호출됩니다. 한 번 더 잡으면 데드락이 납니다.',
+ko:['<code>ring_stop()</code>용 업스트림 수정을 <code>git apply</code>로 적용합니다.',
+'벤더 변경으로 줄이 밀렸고, <code>git apply</code>는 3줄 위에서 같은 문맥을 찾습니다.',
+'hunk는 <code>ring_reset()</code>에 들어가고, 패치는 깨끗하게 적용됐다고 나옵니다.',
+'<code>ring_reset()</code>은 이미 lock을 잡은 채 실행됩니다. 한 번 더 잡으면 데드락이 납니다.',
 'Portwright는 두 함수를 모두 읽고 수정을 <code>ring_stop()</code>에 넣습니다.']};
+const LB={en:{main:'mainline',stable:'stable (LTS)',vendor:'vendor BSP kernel',fix:'upstream fix',bad:'rejected',gates:'gates',g:['apply','build','match','boot']},
+ko:{main:'메인라인',stable:'stable (LTS)',vendor:'벤더 BSP 커널',fix:'업스트림 수정',bad:'적용 실패',gates:'검증 관문',g:['적용','컴파일','비교','부팅']}};
 const EN={},nodes=$$('[data-i18n]');
-nodes.forEach(el=>{const k=el.dataset.i18n;if(!(k in EN))EN[k]=el instanceof SVGElement?el.textContent:el.innerHTML});
+nodes.forEach(el=>{const k=el.dataset.i18n;if(!(k in EN))EN[k]=el.innerHTML});
 let lang='en';const onLang=[];
 const t=k=>(lang==='ko'&&k in KO?KO:EN)[k];
 function setLang(l,save){
   lang=l==='ko'?'ko':'en';document.documentElement.lang=lang;
-  nodes.forEach(el=>{const v=t(el.dataset.i18n);if(v==null)return;if(el instanceof SVGElement)el.textContent=v;else el.innerHTML=v});
+  nodes.forEach(el=>{const v=t(el.dataset.i18n);if(v!=null)el.innerHTML=v});
   $$('[data-lang-btn]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.langBtn===lang)));
   onLang.forEach(f=>f());
   if(save)try{localStorage.setItem('pw-lang',lang)}catch(e){}
 }
-$$('[data-lang-btn]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.langBtn===lang)return;setLang(b.dataset.langBtn,true);if(!RM)$('main').animate([{opacity:.35},{opacity:1}],{duration:320,easing:EASE})}));
-let init='en';
-try{const q=new URLSearchParams(location.search).get('lang');init=q||localStorage.getItem('pw-lang')||'en'}catch(e){}
-if(init!=='en')setLang(init,false);
+$$('[data-lang-btn]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.langBtn===lang)return;setLang(b.dataset.langBtn,true);if(!RM)[$('.hero-copy'),$('main')].forEach(e=>e.animate([{opacity:.35},{opacity:1}],{duration:320,easing:EASE}))}));
 
-/* ---------- copy ---------- */
+/* ================= helpers ================= */
+function gate(el){
+  let vis=false;const q=[];const flush=()=>{if(vis&&!document.hidden)q.splice(0).forEach(f=>f())};
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;flush()},{threshold:.2}).observe(el);
+  document.addEventListener('visibilitychange',flush);
+  return()=>vis&&!document.hidden?Promise.resolve():new Promise(r=>q.push(r));
+}
+function Beat(el,texts){
+  const bn=$('.bn',el),bt=$('.bt',el),sg=$$('.segs b',el);let cur=-1;
+  const api={
+    set(i,quiet){cur=i;bn.textContent='0'+(i+1);bt.innerHTML=texts[lang][i];
+      sg.forEach((b,j)=>{b.getAnimations().forEach(a=>a.cancel());b.style.transform='scaleX('+(j<i?1:0)+')'});
+      if(!quiet&&!RM)bt.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:340,easing:EASE})},
+    prog(p){if(cur>=0)sg[cur].style.transform='scaleX('+cl(p)+')'},
+    run(d){if(cur>=0&&!RM)sg[cur].animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:d,easing:'linear',fill:'forwards'})},
+    text(){if(cur>=0)bt.innerHTML=texts[lang][cur]}};
+  onLang.push(()=>api.text());return api;
+}
+
+/* ================= copy ================= */
 $$('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
   const el=document.getElementById(b.dataset.copy);
   try{await navigator.clipboard.writeText(el.textContent.trim());b.textContent=UI[lang].copied}
@@ -539,94 +588,214 @@ $$('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
   setTimeout(()=>{b.textContent=t('copy')},2000);
 }));
 
-/* ---------- run scenes only while visible ---------- */
-function gate(el){
-  let vis=false;const q=[];const flush=()=>{if(vis&&!document.hidden)q.splice(0).forEach(f=>f())};
-  new IntersectionObserver(e=>{vis=e[0].isIntersecting;flush()},{threshold:.2}).observe(el);
-  document.addEventListener('visibilitychange',flush);
-  return()=>vis&&!document.hidden?Promise.resolve():new Promise(r=>q.push(r));
+/* ================= card spotlight + stage tilt ================= */
+$$('.card').forEach(el=>el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();el.style.setProperty('--mx',(e.clientX-r.left)+'px');el.style.setProperty('--my',(e.clientY-r.top)+'px')}));
+const stage=$('#stage');
+if(stage&&!RM&&matchMedia('(pointer:fine)').matches){
+  stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;stage.style.transform=`perspective(1400px) rotateY(${(x*7).toFixed(2)}deg) rotateX(${(-y*5).toFixed(2)}deg)`});
+  stage.addEventListener('pointerleave',()=>{stage.style.transform=''});
 }
 
-/* ---------- code view: wrong-function hunk ---------- */
+const css=getComputedStyle(document.documentElement),V=n=>css.getPropertyValue(n).trim();
+const rgba=(h,a)=>{const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+
+/* ================= aurora ================= */
+(function(){
+  const cv=$('#aurora');if(!cv||!cv.getContext)return;const a=cv.getContext('2d');
+  const bg=V('--stage'),B=[[V('--ember'),.78,.30,.42,.10,.08,.00021,0,.5],[V('--amber'),.92,.62,.30,.08,.10,.00017,2,.38],[V('--rose'),.60,.15,.30,.12,.07,.00013,4,.36],[V('--cobalt'),.98,.08,.38,.06,.08,.00011,1,.42],[V('--ember'),.12,.95,.34,.10,.04,.00009,3,.22]];
+  const paint=now=>{a.globalCompositeOperation='source-over';a.fillStyle=bg;a.fillRect(0,0,160,90);a.globalCompositeOperation='lighter';
+    B.forEach(([c,x,y,r,ax,ay,w,p,al])=>{const X=(x+ax*Math.sin(now*w+p))*160,Y=(y+ay*Math.cos(now*w*1.3+p))*90,R=r*160,g=a.createRadialGradient(X,Y,0,X,Y,R);g.addColorStop(0,rgba(c,al));g.addColorStop(1,rgba(c,0));a.fillStyle=g;a.fillRect(0,0,160,90)})};
+  paint(0);if(RM)return;
+  let vis=false,run=false,last=0;
+  const start=()=>{if(run||!vis||document.hidden)return;run=true;requestAnimationFrame(loop)};
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;start()}).observe(cv);
+  function loop(now){if(!vis||document.hidden){run=false;return}if(now-last>40){last=now;paint(now)}requestAnimationFrame(loop)}
+  document.addEventListener('visibilitychange',start);
+})();
+
+/* ================= hero canvas story ================= */
+(function(){
+  const cv=$('#hero-cv');if(!cv||!cv.getContext)return;
+  const c=cv.getContext('2d'),W=560,H=360;
+  const C={ember:V('--ember'),amber:V('--amber'),rose:V('--rose'),cobalt:V('--cobalt'),ok:V('--ok'),ink:V('--stage-ink'),muted:V('--stage-muted'),card:V('--stage-2')};
+  const cub=(p0,p1,p2,p3,n=90)=>{const o=[];for(let i=0;i<=n;i++){const s=i/n,u=1-s,w0=u*u*u,w1=3*u*u*s,w2=3*u*s*s,w3=s*s*s;o.push([w0*p0[0]+w1*p1[0]+w2*p2[0]+w3*p3[0],w0*p0[1]+w1*p1[1]+w2*p2[1]+w3*p3[1]])}return o};
+  const lin=(p,q,n=60)=>Array.from({length:n+1},(_,i)=>[p[0]+(q[0]-p[0])*i/n,p[1]+(q[1]-p[1])*i/n]);
+  const mk=(...ps)=>{const pts=[];ps.forEach((p,i)=>pts.push(...(i?p.slice(1):p)));const len=[0];for(let i=1;i<pts.length;i++)len.push(len[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));return{pts,len,L:len[len.length-1]}};
+  const at=(P,f)=>{const s=cl(f)*P.L;let i=1;while(i<P.len.length-1&&P.len[i]<s)i++;const p=P.pts[i-1],q=P.pts[i],d=(P.len[i]-P.len[i-1])||1,k=cl((s-P.len[i-1])/d);return[p[0]+(q[0]-p[0])*k,p[1]+(q[1]-p[1])*k]};
+  const sub=(P,f0,f1)=>{c.beginPath();const s0=f0*P.L,s1=f1*P.L,p=at(P,f0);c.moveTo(p[0],p[1]);for(let i=0;i<P.pts.length;i++)if(P.len[i]>s0&&P.len[i]<s1)c.lineTo(P.pts[i][0],P.pts[i][1]);const q=at(P,f1);c.lineTo(q[0],q[1])};
+  const RAIL=[mk(lin([30,70],[540,70])),mk(cub([70,70],[100,70],[100,170],[130,170]),lin([130,170],[540,170])),mk(cub([150,170],[180,170],[180,270],[210,270]),lin([210,270],[540,270]))];
+  const OK=mk(cub([330,70],[368,70],[400,118],[400,161])),BAD=mk(cub([400,179],[420,179],[440,224],[440,261])),PW=mk(cub([330,70],[470,70],[515,140],[515,261])),CN=mk(lin([515,280],[515,316]));
+  let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const mkB=n=>Array.from({length:n},()=>({a:rnd()*6.283,s:22+rnd()*48,r:1.1+rnd()*1.9}));
+  const B1=mkB(26),B2=mkB(32);
+  const T={FIX:850,OK:1450,OKD:850,BAD:2650,BADD:600,PW:3900,PWD:1250,G0:5600,GS:330,END:7200,FADE:10200,CYCLE:10700};
+  const BS=[0,1450,2650,3900,5600,7200];
+  let K=1;
+  const rr=(x,y,w,h,r)=>{c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()};
+  const tx=(s,x,y,col,al='left',sz=12,wt=600)=>{c.font=`${wt} ${sz}px "JetBrains Mono","Noto Sans KR",ui-monospace,monospace`;c.textAlign=al;c.fillStyle=col;c.fillText(s,x,y)};
+  const dot=(x,y,r,col,blur)=>{if(r<=0)return;c.save();c.shadowColor=col;c.shadowBlur=blur*K;c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill();c.restore()};
+  const burst=(x,y,B,f,col)=>{if(f<=0||f>=1)return;c.save();c.globalCompositeOperation='lighter';B.forEach(p=>{const d=p.s*eo(f);c.fillStyle=rgba(col,.95*(1-f));c.beginPath();c.arc(x+Math.cos(p.a)*d,y+Math.sin(p.a)*d,p.r*(1-.6*f),0,7);c.fill()});c.restore()};
+  const shock=(x,y,r0,f,col)=>{if(f<=0||f>=1)return;c.strokeStyle=rgba(col,.85*(1-f));c.lineWidth=.5+2*(1-f);c.beginPath();c.arc(x,y,r0+38*eo(f),0,7);c.stroke()};
+  const comet=(P,f,col,w)=>{if(f<=0||f>=1)return;c.save();c.globalCompositeOperation='lighter';c.lineCap='round';const N=16;
+    for(let j=N;j>0;j--){const b=f-(j-1)*.013;if(b<=0)continue;c.strokeStyle=rgba(col,(1-j/N)*.9);c.lineWidth=w*(1-j/N)+.4;sub(P,Math.max(0,f-j*.013),b);c.stroke()}
+    const h=at(P,f),g=c.createRadialGradient(h[0],h[1],0,h[0],h[1],18);g.addColorStop(0,rgba(col,.9));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.beginPath();c.arc(h[0],h[1],18,0,7);c.fill();
+    c.fillStyle=rgba(C.ink,1);c.beginPath();c.arc(h[0],h[1],2.6,0,7);c.fill();c.restore()};
+  const chk=(x,y,f,col,lw=2)=>{if(f<=0)return;const p=[[x-4,y],[x-1,y+3],[x+5,y-3.5]],l1=Math.hypot(3,3),l2=Math.hypot(6,6.5),L=(l1+l2)*cl(f);c.save();c.strokeStyle=col;c.lineWidth=lw;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(p[0][0],p[0][1]);
+    if(L<=l1){const k=L/l1;c.lineTo(p[0][0]+3*k,p[0][1]+3*k)}else{c.lineTo(p[1][0],p[1][1]);const k=(L-l1)/l2;c.lineTo(p[1][0]+6*k,p[1][1]-6.5*k)}c.stroke();c.restore()};
+
+  function draw(tm,now){
+    const fa=tm<T.FADE?1:cl(1-(tm-T.FADE)/500),L=LB[lang];
+    c.setTransform(K,0,0,K,0,0);c.clearRect(0,0,W,H);c.globalAlpha=fa;c.lineCap='round';
+    RAIL.forEach((P,i)=>{const f=eo(cl((tm-i*120)/650));if(f<=0)return;c.lineWidth=2;c.strokeStyle=i===2?rgba(C.cobalt,.45):rgba(C.ink,.16);sub(P,0,f);c.stroke();
+      if(f>=1){c.save();c.setLineDash([2,18]);c.lineDashOffset=-((now*(i===2?.012:.03))%20);c.strokeStyle=i===2?rgba(C.cobalt,.85):rgba(C.ink,.45);sub(P,0,1);c.stroke();c.restore()}});
+    const la=cl((tm-150)/500);if(la>0){c.globalAlpha=fa*la;tx(L.main,30,54,C.muted);tx(L.stable,130,154,C.muted);tx(L.vendor,210,254,C.muted);c.globalAlpha=fa}
+    [[140,70],[215,70],[280,70],[230,170],[300,170]].forEach((p,i)=>{const f=cl((tm-280-i*70)/380);if(f<=0)return;const r=Math.max(0,5.5*back(f));c.fillStyle=C.card;c.strokeStyle=rgba(C.ink,.6);c.lineWidth=1.6;c.beginPath();c.arc(p[0],p[1],r,0,7);c.fill();c.stroke()});
+    [250,285,320,355].forEach((x,i)=>{const f=cl((tm-520-i*70)/380);if(f<=0)return;const s=11*back(f);if(s<=0)return;c.fillStyle=rgba(C.cobalt,.8);rr(x-s/2,270-s/2,s,s,2.5);c.fill()});
+    /* upstream fix */
+    const fF=cl((tm-T.FIX)/420);
+    if(fF>0){dot(330,70,9*back(fF),C.ember,20);c.globalAlpha=fa*cl((tm-T.FIX-80)/400);tx(L.fix,330,44,C.amber,'center',12,700);c.globalAlpha=fa}
+    shock(330,70,9,cl((tm-T.FIX)/750),C.amber);burst(330,70,B1,cl((tm-T.FIX)/950),C.amber);
+    /* stable backport */
+    const fO=eio(cl((tm-T.OK)/T.OKD));
+    if(fO>0){c.save();c.setLineDash([4,6]);c.lineWidth=1.8;c.strokeStyle=rgba(C.ink,.55);sub(OK,0,fO);c.stroke();c.restore()}
+    comet(OK,fO,C.ink,3);
+    const fS=cl((tm-T.OK-T.OKD)/360);
+    if(fS>0){c.fillStyle=C.card;c.strokeStyle=rgba(C.ink,.85);c.lineWidth=1.8;c.beginPath();c.arc(400,170,Math.max(0,8*back(fS)),0,7);c.fill();c.stroke();chk(400.5,170.5,cl((tm-T.OK-T.OKD-120)/300),C.ink,1.8)}
+    /* rejected on vendor */
+    const fB=eio(cl((tm-T.BAD)/T.BADD));
+    if(fB>0){c.save();c.setLineDash([4,6]);c.lineWidth=1.8;c.strokeStyle=rgba(C.rose,.85);sub(BAD,0,fB);c.stroke();c.restore()}
+    comet(BAD,fB,C.rose,3);
+    const tX=tm-T.BAD-T.BADD;
+    if(tX>0){
+      if(tX<520){c.save();c.globalCompositeOperation='lighter';const R=10+44*eo(tX/520),g=c.createRadialGradient(440,270,0,440,270,R);g.addColorStop(0,rgba(C.rose,.55*(1-tX/520)));g.addColorStop(1,rgba(C.rose,0));c.fillStyle=g;c.beginPath();c.arc(440,270,R,0,7);c.fill();c.restore()}
+      const sh=tX<400?Math.sin(tX*.09)*5*(1-tX/400):0,p=cl(tX/260);
+      c.save();c.translate(sh,0);c.strokeStyle=C.rose;c.lineWidth=3;c.shadowColor=C.rose;c.shadowBlur=10*K;c.beginPath();
+      const a1=cl(p*2),a2=cl(p*2-1);c.moveTo(432,262);c.lineTo(432+16*a1,262+16*a1);if(a2>0){c.moveTo(448,262);c.lineTo(448-16*a2,262+16*a2)}c.stroke();c.restore();
+      c.globalAlpha=fa*cl((tX-120)/300);tx(L.bad,426,300,C.rose,'right',12,700);c.globalAlpha=fa}
+    /* Portwright port */
+    const fP=eio(cl((tm-T.PW)/T.PWD));
+    if(fP>0){c.save();const g=c.createLinearGradient(330,70,515,270);g.addColorStop(0,C.ember);g.addColorStop(1,C.amber);c.strokeStyle=g;c.lineWidth=3.2;c.shadowColor=C.ember;c.shadowBlur=14*K;sub(PW,0,fP);c.stroke();c.restore()}
+    comet(PW,fP,C.amber,4.8);
+    const fl=cl((tm-T.PW-480)/380);
+    if(fl>0){const p=at(PW,.5),s=.85+.15*back(fl);c.save();c.globalAlpha=fa*fl;c.translate(p[0],p[1]);c.scale(s,s);rr(-50,-13,100,26,13);c.fillStyle=C.card;c.fill();c.strokeStyle=C.ember;c.lineWidth=1.4;c.stroke();tx('Portwright',0,4.5,C.amber,'center',12,700);c.restore()}
+    const tE=tm-T.PW-T.PWD;
+    if(tE>0){dot(515,270,9*back(cl(tE/420)),C.ember,22);shock(515,270,9,cl(tE/750),C.amber);burst(515,270,B2,cl(tE/1000),C.amber);
+      const fc=cl((tE-200)/300);if(fc>0){c.save();c.setLineDash([3,5]);c.strokeStyle=rgba(C.amber,.75);c.lineWidth=1.5;sub(CN,0,fc);c.stroke();c.restore()}}
+    /* gates */
+    const ga=cl((tm-T.G0+300)/300);
+    if(ga>0){c.globalAlpha=fa*ga;tx(L.gates,30,334,C.muted);
+      [230,310,390,470].forEach((x,i)=>{const tg=tm-(T.G0+i*T.GS);rr(x,317,70,26,13);
+        if(tg>0){c.fillStyle=rgba(C.ok,.14);c.fill();c.strokeStyle=rgba(C.ok,.9)}else c.strokeStyle=rgba(C.ink,.2);c.lineWidth=1.3;c.stroke();
+        if(tg>0&&tg<360){c.save();c.globalCompositeOperation='lighter';c.fillStyle=rgba(C.ink,.55*(1-tg/360));rr(x,317,70,26,13);c.fill();c.restore()}
+        chk(x+14,330,cl((tg-60)/260),C.ok);tx(L.g[i],x+42,334.5,tg>0?C.ink:C.muted,'center',11,600)});
+      const fs=(tm-T.G0+150)/(4*T.GS+150);
+      if(fs>0&&fs<1){const sx=215+fs*335;c.save();c.globalCompositeOperation='lighter';const g=c.createRadialGradient(sx,330,0,sx,330,40);g.addColorStop(0,rgba(C.amber,.45));g.addColorStop(1,rgba(C.amber,0));c.fillStyle=g;c.fillRect(sx-40,290,80,80);c.restore()}
+      c.globalAlpha=fa}
+  }
+
+  const beat=Beat($('#hero-beat'),HB);
+  let tm=T.END,last=0,running=false,vis=false,started=false,bi=-1;
+  const fit=()=>{const w=cv.clientWidth||W,d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*d);cv.height=Math.round(w*H/W*d);K=cv.width/W};
+  const sync=()=>{let i=0;while(i<4&&tm>=BS[i+1])i++;if(i!==bi){bi=i;beat.set(i)}beat.prog((tm-BS[i])/(BS[i+1]-BS[i]))};
+  new ResizeObserver(()=>{fit();draw(tm,performance.now())}).observe(cv);
+  if(document.fonts)document.fonts.ready.then(()=>draw(tm,performance.now()));
+  beat.set(4,true);beat.prog(1);bi=4;
+  onLang.push(()=>{if(!running)draw(tm,performance.now())});
+  if(RM)return;
+  const start=()=>{if(running)return;running=true;last=performance.now();if(!started){started=true;tm=0;bi=-1}requestAnimationFrame(loop)};
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;if(vis&&!document.hidden)start()},{threshold:.15}).observe(cv);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&vis)start()});
+  function loop(now){if(!vis||document.hidden){running=false;return}tm+=Math.min(64,now-last);last=now;if(tm>=T.CYCLE){tm=0;bi=-1}sync();draw(tm,now);requestAnimationFrame(loop)}
+})();
+
+/* ================= code scene ================= */
 (function(){
   const fig=$('#diff-fig');if(!fig)return;
-  const lines=$('.lines',fig),scan=$('.scan',fig),cap=$('#cap'),dots=$$('.dots i',fig);
+  const lines=$('.lines',fig),scan=$('.scan',fig),term=$('.term',fig),ty=$('.ty',term),outs=$$('.o',term);
   const L=n=>$(`li[data-n="${n}"]`,lines),bad=$$('.ins.bad',fig),good=$$('.ins.good',fig),held=L(312);
-  let s=3,span=[315,319];
+  const beat=Beat($('.beat',fig),CB);let span=[315,319];
   const place=(a,b)=>{span=[a,b];const A=L(a),B=L(b);scan.style.top=(lines.offsetTop+A.offsetTop)+'px';scan.style.height=(B.offsetTop+B.offsetHeight-A.offsetTop)+'px'};
-  const render=()=>{cap.innerHTML=CAP[lang][s];dots.forEach((d,i)=>d.classList.toggle('on',i===s));fig.dataset.s=s};
-  onLang.push(render);render();
   new ResizeObserver(()=>place(...span)).observe(lines);
-  fig.dataset.scan='match';if(RM)return;
-  const step=n=>{s=n;render();cap.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}],{duration:360,easing:EASE})};
+  beat.set(3,true);beat.prog(1);fig.dataset.scan='match';
+  if(RM)return;
+  const S=(i,d)=>{fig.dataset.s=i;beat.set(i);beat.run(d)};
+  const CMD='git apply -v fix.patch';
   const ready=gate(fig);
   (async()=>{for(;;){
     await ready();
-    bad.concat(good).forEach(r=>r.classList.remove('on'));held.classList.remove('hot');
-    fig.dataset.scan='off';await wait(420);place(318,319);await frame();
-    fig.dataset.scan='seek';step(0);await wait(2000);
-    step(1);place(315,319);await wait(800);fig.dataset.scan='match';await wait(1400);
-    step(2);bad.forEach(r=>r.classList.add('on'));await wait(480);place(315,319);await wait(1700);
-    step(3);held.classList.add('hot');await wait(3200);
-    held.classList.remove('hot');bad.forEach(r=>r.classList.remove('on'));await wait(480);
-    step(4);fig.dataset.scan='fix';place(406,410);good.forEach(r=>r.classList.add('on'));await wait(500);place(406,410);await wait(4200);
+    fig.classList.remove('alarm','good');bad.concat(good).forEach(r=>r.classList.remove('on','calm'));held.classList.remove('hot');
+    outs.forEach(o=>o.classList.add('hide'));ty.textContent='';fig.dataset.scan='off';await wait(350);place(318,319);await frame();
+    S(0,1500);fig.dataset.scan='seek';term.classList.add('typing');
+    for(let i=1;i<=CMD.length;i++){ty.textContent=CMD.slice(0,i);await wait(26)}
+    term.classList.remove('typing');await wait(880);
+    S(1,1500);outs[0].classList.remove('hide');await wait(300);place(315,319);await wait(620);fig.dataset.scan='match';outs[1].classList.remove('hide');await wait(580);
+    S(2,1400);bad.forEach(r=>r.classList.add('on','calm'));await wait(480);place(315,319);outs[2].classList.remove('hide');await wait(920);
+    S(3,2400);bad.forEach(r=>r.classList.remove('calm'));held.classList.add('hot');fig.classList.add('alarm');await wait(2400);
+    S(4,3600);fig.classList.remove('alarm');fig.dataset.scan='pw';place(312,319);await wait(650);
+    held.classList.remove('hot');bad.forEach(r=>r.classList.remove('on'));await wait(450);
+    place(404,410);good.forEach(r=>r.classList.add('on'));fig.classList.add('good');await wait(500);place(404,410);await wait(2000);
   }})();
 })();
 
-/* ---------- hero: backport story ---------- */
+/* ================= pipeline beam ================= */
 (function(){
-  const svg=$('#hero-svg');if(!svg||RM||!svg.animate)return;
-  const q=s=>$$(s,svg),g=id=>svg.getElementById?svg.getElementById(id):$('#'+id,svg);
-  const along=id=>{const p=g(id),n=48,L=p.getTotalLength();return Array.from({length:n+1},(_,i)=>{const a=p.getPointAtLength(L*i/n);return{transform:`translate(${a.x.toFixed(2)}px,${a.y.toFixed(2)}px)`}})};
-  const P={ok:along('g-ok'),bad:along('g-bad'),pw:along('g-pw')};
-  const DRAW=[{strokeDashoffset:1},{strokeDashoffset:0}],POP=[{transform:'scale(0)',opacity:0},{transform:'scale(1)',opacity:1}],FADE=[{opacity:0},{opacity:1}];
-  const BLIP=[{opacity:0},{opacity:1,offset:.08},{opacity:1,offset:.9},{opacity:0}],PULSE=[{transform:'scale(1)',opacity:.9},{transform:'scale(3.2)',opacity:0}];
-  const ready=gate(svg),all=g('h-all');
+  const flow=$('.flow');if(!flow)return;
+  const st=$$('.step',flow),beam=$('.beam',flow),nd=$$('.node',beam),tok=$('.token',beam),tl=$('#tok'),fill=$('.bfill',beam);
+  let key=null;const label=()=>key?t(key):'CVE';
+  onLang.push(()=>{tl.textContent=label()});
+  if(RM)return;
+  const ready=gate(flow);
+  const cx=n=>n.offsetLeft+n.offsetWidth/2;
+  const moveTo=(x,d)=>tok.animate([{transform:getComputedStyle(tok).transform},{transform:`translate(calc(${x}px - 50%),-50%)`}],{duration:d,easing:EASE,fill:'forwards'});
   (async()=>{for(;;){
-    await ready();const run=[];
-    const go=(el,kf,o)=>{run.push(el.animate(kf,Object.assign({easing:EASE,fill:'both'},o)))};
-    q('.lbl:not(#h-glbl)').forEach((e,i)=>go(e,FADE,{duration:500,delay:120+i*260}));
-    q('.lane').forEach((e,i)=>go(e,DRAW,{duration:1000,delay:i*260,easing:'cubic-bezier(.6,0,.2,1)'}));
-    q('.cm,.vc').forEach((e,i)=>go(e,POP,{duration:420,delay:560+i*85,easing:BACK}));
-    go(g('h-fix'),POP,{duration:520,delay:1650,easing:BACK});
-    go(g('h-fixlbl'),[{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:450,delay:1750});
-    go(g('h-ring'),PULSE,{duration:1000,delay:1750,iterations:2,easing:'ease-out',fill:'none'});
-    go(g('mk-ok'),DRAW,{duration:800,delay:2400,easing:'ease-in-out'});
-    go(g('pk-ok'),P.ok,{duration:800,delay:2400,easing:'ease-in-out',fill:'none'});
-    go(g('pk-ok'),BLIP,{duration:800,delay:2400,fill:'none'});
-    go(g('h-okn'),POP,{duration:420,delay:3150,easing:BACK});
-    go(g('mk-bad'),DRAW,{duration:700,delay:3500,easing:'ease-in'});
-    go(g('pk-bad'),P.bad,{duration:700,delay:3500,easing:'ease-in',fill:'none'});
-    go(g('pk-bad'),BLIP,{duration:700,delay:3500,fill:'none'});
-    go(g('h-x'),POP,{duration:380,delay:4180,easing:BACK});
-    go(g('h-xin'),[{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(-2px)'},{transform:'translateX(0)'}],{duration:420,delay:4560,fill:'none'});
-    go(g('h-badlbl'),FADE,{duration:400,delay:4400});
-    go(g('h-pw'),DRAW,{duration:1500,delay:5100,easing:'cubic-bezier(.45,0,.2,1)'});
-    go(g('pk-pw'),P.pw,{duration:1500,delay:5100,easing:'cubic-bezier(.45,0,.2,1)',fill:'none'});
-    go(g('pk-pw'),BLIP,{duration:1500,delay:5100,fill:'none'});
-    go(g('h-pwl'),[{opacity:0,transform:'translateY(8px) scale(.9)'},{opacity:1,transform:'none'}],{duration:520,delay:5650,easing:BACK});
-    go(g('h-end'),POP,{duration:480,delay:6560,easing:BACK});
-    go(g('h-endring'),PULSE,{duration:950,delay:6600,easing:'ease-out',fill:'none'});
-    go(g('h-glbl'),FADE,{duration:400,delay:6750});
-    q('.chip').forEach((c,i)=>{const d=6850+i*330;go(c,FADE,{duration:300,delay:d-260});go($('.lit',c),FADE,{duration:320,delay:d});go($('.ck',c),DRAW,{duration:360,delay:d+80})});
-    await wait(6850+3*330+440+5200);
-    go(all,[{opacity:1},{opacity:0}],{duration:600,fill:'forwards'});await wait(640);
-    run.forEach(a=>a.cancel());
+    await ready();
+    st.forEach(s=>s.classList.remove('on','done'));nd.forEach(n=>n.classList.remove('on','done'));
+    [tok,fill].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));
+    const show=beam.offsetParent!==null,x0=cx(nd[0]),x3=cx(nd[3]);
+    fill.style.left=x0+'px';fill.style.width=(x3-x0)+'px';fill.style.transform='scaleX(0)';
+    key=null;tl.textContent=label();
+    if(show){tok.style.transform=`translate(calc(${x0-90}px - 50%),-50%)`;tok.animate([{opacity:0},{opacity:1}],{duration:300,fill:'forwards'})}
+    await wait(300);let prev=0;
+    for(let i=0;i<4;i++){
+      const x=cx(nd[i]),p=(x-x0)/(x3-x0||1);
+      if(show){moveTo(x,650);fill.animate([{transform:`scaleX(${prev})`},{transform:`scaleX(${p})`}],{duration:650,easing:EASE,fill:'forwards'})}
+      prev=p;await wait(650);
+      nd[i].classList.add('on');st[i].classList.add('on');await wait(480);
+      key='o'+(i+1);tl.textContent=label();tl.animate([{transform:'scale(.7)',opacity:.3},{transform:'scale(1.08)',opacity:1,offset:.7},{transform:'scale(1)'}],{duration:420,easing:EASE});
+      await wait(520);nd[i].classList.replace('on','done');st[i].classList.replace('on','done');
+    }
+    await wait(1700);if(show)tok.animate([{opacity:1},{opacity:0}],{duration:350,fill:'forwards'});await wait(450);
   }})();
 })();
 
-/* ---------- pipeline ---------- */
+/* ================= gate track ================= */
 (function(){
-  const box=$('.steps');if(!box||RM)return;const st=$$('.step',box),ready=gate(box);
-  (async()=>{for(;;){await ready();for(const s of st){s.classList.add('on');await wait(1550);s.classList.replace('on','done')}await wait(1800);st.forEach(s=>s.classList.remove('done'));await wait(450)}})();
+  const col=$('.gates-col');if(!col)return;
+  const gs=$$('.gate',col),dt=$('.tdot',col),fl=$('.tfill',col);
+  const y=g=>g.offsetTop+g.offsetHeight/2;
+  const fit=()=>{col.style.setProperty('--t0',y(gs[0])+'px');col.style.setProperty('--t1',y(gs[gs.length-1])+'px')};
+  new ResizeObserver(fit).observe(col);fit();
+  if(RM)return;
+  const ready=gate(col);
+  (async()=>{for(;;){
+    await ready();
+    [dt,fl].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));
+    gs.forEach(g=>{g.classList.remove('ok','run');g.classList.add('idle')});fl.style.transform='scaleY(0)';dt.style.opacity='0';await wait(450);
+    const t0=y(gs[0]),t1=y(gs[gs.length-1]);let prev=t0;
+    dt.style.transform=`translateY(${t0}px)`;dt.style.opacity='1';
+    for(let i=0;i<gs.length;i++){const g=gs[i],yy=y(g);
+      if(i){dt.animate([{transform:`translateY(${prev}px)`},{transform:`translateY(${yy}px)`}],{duration:480,easing:EASE,fill:'forwards'});
+        fl.animate([{transform:`scaleY(${(prev-t0)/(t1-t0)})`},{transform:`scaleY(${(yy-t0)/(t1-t0)})`}],{duration:480,easing:EASE,fill:'forwards'});await wait(480)}
+      prev=yy;g.classList.replace('idle','run');await wait(720);g.classList.replace('run','ok');await wait(120);
+    }
+    await wait(3000);dt.style.opacity='0';await wait(300);
+  }})();
 })();
 
-/* ---------- gates ---------- */
-(function(){
-  const list=$('.gates');if(!list||RM)return;const gs=$$('.gate',list),ready=gate(list);
-  (async()=>{for(;;){await ready();gs.forEach(x=>{x.classList.remove('ok','run');x.classList.add('idle')});await wait(600);
-    for(const x of gs){x.classList.replace('idle','run');await wait(950);x.classList.replace('run','ok')}await wait(4500)}})();
-})();
+/* ================= initial language ================= */
+let init='en';
+try{const q=new URLSearchParams(location.search).get('lang');init=q||localStorage.getItem('pw-lang')||'en'}catch(e){}
+if(init!=='en')setLang(init,false);
 })();
 </script>
 </body>
